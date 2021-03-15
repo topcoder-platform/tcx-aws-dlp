@@ -1,0 +1,66 @@
+service: tcx-aws-devops-dlp
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+provider:
+  name: aws
+  region: ${env:AWS_REGION,opt:region,'us-west-1'}
+  runtime: nodejs12.x
+  environment:
+    PRESIDIO_ENDPOINT: ${opt:presidio-endpoint,env:PRESIDIO_ENDPOINT}
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Resource:
+            - 'Fn::GetAtt':
+                - 'AdoWorkItemsDlpStatus'
+                - 'Arn'
+          Action:
+            - 'dynamodb:BatchGet*'
+            - 'dynamodb:DescribeStream'
+            - 'dynamodb:DescribeTable'
+            - 'dynamodb:Get*'
+            - 'dynamodb:Query'
+            - 'dynamodb:Scan'
+            - 'dynamodb:BatchWrite*'
+            - 'dynamodb:CreateTable'
+            - 'dynamodb:Delete*'
+            - 'dynamodb:Update*'
+            - 'dynamodb:PutItem'
+
+functions:
+  dlp:
+    handler: DLPTrigger/lambda.handle
+    events:
+      - http:
+          path: api/dlptrigger
+          method: GET
+      - http:
+          path: api/dlptrigger
+          method: POST
+      - http:
+          path: api/dlptrigger
+          method: OPTIONS
+
+resources:
+  Resources:
+    AdoWorkItemsDlpStatus:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: 'AdoWorkItemsDlpStatus'
+        AttributeDefinitions:
+          - AttributeName: 'projectId'
+            AttributeType: 'S'
+          - AttributeName: 'resourceId'
+            AttributeType: 'S'
+        KeySchema:
+          - AttributeName: 'projectId'
+            KeyType: 'HASH'
+          - AttributeName: 'resourceId'
+            KeyType: 'RANGE'
+        ProvisionedThroughput:
+          ReadCapacityUnits: '1'
+          WriteCapacityUnits: '1'
