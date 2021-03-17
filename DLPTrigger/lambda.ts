@@ -1,6 +1,7 @@
 import handleGetRequest from './handlers/get'
 import * as aws from 'aws-lambda'
 import handlePostRequest from './handlers/post'
+import handleOptionsRequest from './handlers/options'
 
 /**
  * HTTP headers to be always returned to the client.
@@ -8,7 +9,7 @@ import handlePostRequest from './handlers/post'
 const commonHeaders = {
   'Access-Control-Allow-Credentials': 'true',
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, HANDSHAKE',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': '*',
   'Access-Control-Max-Age': '86400',
   // eslint-disable-next-line quote-props
@@ -25,6 +26,10 @@ export async function handle (event: aws.APIGatewayEvent, context: aws.Context) 
   const headers = commonHeaders
   let statusCode = 200
   let body: any = null
+  // Store lower-case version of the headers
+  for (const key in event.headers) {
+    event.headers[key.toLowerCase()] = event.headers[key];
+  }
 
   try {
     switch (event.httpMethod) {
@@ -37,7 +42,8 @@ export async function handle (event: aws.APIGatewayEvent, context: aws.Context) 
         break
       }
       case 'OPTIONS':
-        // Nothing to do for OPTIONS method.
+        const additionalHeaders = await handleOptionsRequest(event, context)
+        Object.assign(headers, additionalHeaders)
         break
       default:
         statusCode = 405
