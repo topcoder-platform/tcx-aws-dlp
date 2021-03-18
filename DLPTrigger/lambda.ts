@@ -43,7 +43,14 @@ export async function handle (event: aws.APIGatewayEvent, context: aws.Context) 
       }
       case 'OPTIONS':
         const additionalHeaders = await handleOptionsRequest(event, context)
-        Object.assign(headers, additionalHeaders)
+        const additionalCorsHeaders = {
+          'Access-Control-Expose-Headers': Object.keys(additionalHeaders).join(' ')
+        }
+        Object.assign(
+          headers,
+          additionalHeaders,
+          additionalCorsHeaders
+        )
         break
       default:
         statusCode = 405
