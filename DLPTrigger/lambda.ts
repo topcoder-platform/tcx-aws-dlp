@@ -1,5 +1,5 @@
-import handleGetRequest from './handlers/get'
 import * as aws from 'aws-lambda'
+import handleGetRequest from './handlers/get'
 import handlePostRequest from './handlers/post'
 import handleOptionsRequest from './handlers/options'
 
@@ -57,6 +57,10 @@ export async function handle (event: aws.APIGatewayEvent, context: aws.Context) 
         body = { message: 'Unsupported Method.' }
         break
     }
+    body = {
+      success: true,
+      data: body
+    }
   } catch (err) {
     if (err.isBoom) {
       statusCode = err.output.statusCode
@@ -69,9 +73,15 @@ export async function handle (event: aws.APIGatewayEvent, context: aws.Context) 
       console.error(`Error occurred: ${err.message as string}`)
       console.error(err.stack)
       statusCode = 500
-      body = { message: 'Internal Server Error' }
+      body = {
+        success: false,
+        message: 'Internal Server Error'
+      }
     }
   }
-
-  return { statusCode, headers, body: body ? JSON.stringify(body) : body }
+  return {
+    statusCode,
+    headers,
+    body: body ? JSON.stringify(body) : body
+  }
 }
