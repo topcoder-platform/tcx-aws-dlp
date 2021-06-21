@@ -1,13 +1,15 @@
 {{- if and (.Values.ingress.enabled) (eq .Values.ingress.class "nginx") -}}
+{{- $ingressName := include "presidio.ingress.fullname" . -}}
+{{- $ingressCertSecretName := include "presidio.ingress.cert.secretname" . -}}
 {{- $analyzerfullname := include "presidio.analyzer.fullname" . -}}
 {{- $anonymizerfullname := include "presidio.anonymizer.fullname" . -}}
 {{- $anonymizerimagefullname := include "presidio.anonymizerimage.fullname" . -}}
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: presidio-ingress
+  name: {{ $ingressName }}
   labels:
-    app: presidio-ingress
+    app: {{ $ingressName }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -15,8 +17,13 @@ metadata:
     kubernetes.io/ingress.class: {{ .Values.ingress.class }}
     nginx.ingress.kubernetes.io/rewrite-target: "/$2"
 spec:
+  tls:
+  - hosts:
+    - "{{ .Values.certDomainName }}"
+    secretName: {{ $ingressCertSecretName }}
   rules:
-  - http:
+  - host: "{{ .Values.certDomainName }}"
+    http:
       paths:
       - backend:
           serviceName: {{ $analyzerfullname }}

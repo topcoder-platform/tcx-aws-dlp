@@ -66,3 +66,6 @@ anonymizerimage:
     externalPort: 80
     internalPort: 8080
     name: http
+
+certDomainName: tcx-presidio.svc
+caCommonName: tcx-presidio.ca
