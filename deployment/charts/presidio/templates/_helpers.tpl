@@ -25,7 +25,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{ include "presidio.fullname" . | printf "%s-image-redactor" }}
 {{- end -}}
 {{- define "presidio.ingress.fullname" -}}
-{{ include "presidio.fullname" . | printf "%s-ingress" }}
+{{ printf "presidio-ingress" }}
 {{- end -}}
 {{- define "presidio.ingress.cert.secretname" -}}
 {{ include "presidio.fullname" . | printf "%s-ingress-cert" }}
