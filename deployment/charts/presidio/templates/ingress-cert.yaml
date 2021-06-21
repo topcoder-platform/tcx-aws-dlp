@@ -1,0 +1,16 @@
+{{- $ingressCertSecretName := include "presidio.ingress.cert.secretname" . -}}
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: {{ $ingressCertSecretName }}
+  labels:
+    app: {{ $ingressCertSecretName }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+data:
+{{ ( include "tcx-presidio.gen-certs" . ) | indent 2 }}

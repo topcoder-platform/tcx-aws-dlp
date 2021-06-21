@@ -1,4 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import https from 'https'
+
+const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
 /**
  * Presidio Analyze Response item
@@ -26,8 +29,12 @@ export async function identifyPII (dataString: string): Promise<PresidioRes> {
     data: {
       text: dataString,
       language: 'en'
-    }
+    },
+    headers: {
+      Host: 'tcx-presidio.svc'
+    },
+    httpsAgent
   }
-  const res = await axios(requestConfig)
-  return res.data as PresidioRes
+  const res = await axios.request<PresidioRes>(requestConfig)
+  return res.data
 }
