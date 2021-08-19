@@ -3,22 +3,17 @@ set -e
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 source "$SCRIPT_DIR/env.sh"
 
-analyzer_hostname=""
-while [ -z $analyzer_hostname ]; do
+ANALYZER_HOSTNAME=""
+while [ -z $ANALYZER_HOSTNAME ]; do
   echo "Waiting for end point..."
-  analyzer_hostname=$(kubectl get ingress presidio-ingress \
+  ANALYZER_HOSTNAME=$(kubectl get ingress presidio \
     -n presidio \
     --output jsonpath='{.status.loadBalancer.ingress[0].hostname}' \
   )
-  [ -z "$analyzer_hostname" ] && sleep 5
+  [ -z "$ANALYZER_HOSTNAME" ] && sleep 5
 done
 
-endpoint_basepath=$(kubectl get ingress presidio-ingress \
-  -n presidio \
-  --output jsonpath='{.spec.rules[0].http.paths[0].backend.serviceName}' \
-)
-
-export PRESIDIO_ENDPOINT=https://$analyzer_hostname/$endpoint_basepath/analyze
+export PRESIDIO_ENDPOINT="https://${ANALYZER_HOSTNAME}/analyze"
 
 pushd "${SCRIPT_DIR}/.."
 serverless deploy
